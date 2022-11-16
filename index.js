@@ -20,9 +20,21 @@ class Circle {
 const settings = {
   dimensions: [1080, 1080],
 };
-const strokeRect = ({ context, circle, width, height, h, fill, stroke }) => {
-  context.save();
-  context.translate(width, height);
+const strokeRect = ({
+  context,
+  circle,
+  centerX,
+  centerY,
+  x,
+  y,
+  h,
+  fill,
+  stroke,
+}) => {
+  context.translate(centerX, centerY);
+  context.translate(x, y);
+  context.globalCompositeOperation =
+    random.value() > 0.5 ? 'overlay' : 'source-over';
   context.strokeStyle = stroke;
   context.fillStyle = fill;
   const shadowColor = color.offsetHSL(fill, 0, 0, -20).rgba;
@@ -36,40 +48,48 @@ const strokeRect = ({ context, circle, width, height, h, fill, stroke }) => {
   context.lineTo(circle.getX, circle.getY + h);
   context.lineTo(0, h);
   context.closePath();
-  context.stroke();
   context.fill();
-  context.restore();
+  context.globalCompositeOperation = 'source-over';
+  context.stroke();
+};
+const drawTriangle = (context, width, height) => {
+  context.translate(width * 0.5, height * 0.5);
+  context.beginPath();
+  context.moveTo(-300, 300);
+  context.lineTo(0, -300);
+  context.lineTo(300, 300);
+  context.closePath();
+  context.strokeStyle = '#000';
+  context.lineWidth = 5;
+  context.stroke();
+  context.clip();
 };
 const sketch = ({ context, width, height }) => {
   const rects = [];
-  const rectsColor = [
-    random.pick(colors).hex,
-    random.pick(colors).hex,
-    random.pick(colors).hex,
-    random.pick(colors).hex,
-    random.pick(colors).hex,
-  ];
+  const rectsColor = [random.pick(colors).hex, random.pick(colors).hex];
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i <= 40; i++) {
     rects.push({
       context,
-      circle: new Circle(-30, random.range(200, 600)),
-      width: random.range(0, width),
-      height: random.range(0, height),
-      h: random.range(50, 199),
+      circle: new Circle(-30, random.range(600, width)),
+      centerX: width * 0.5,
+      centerY: height * 0.5,
+      x: random.range(0, 300),
+      y: random.range(0, 300),
+      h: random.range(50, 300),
       fill: random.pick(rectsColor),
       stroke: random.pick(rectsColor),
     });
   }
-  return ({ context, width, height }) => {
-    context.fillStyle = '#f0f0f0';
-    context.fillRect(0, 0, width, height);
 
-    const w = width * 0.5;
-    const h = height * 0.1;
-    const circle = new Circle(-30, w);
+  return ({ context, width, height }) => {
+    context.fillStyle = random.pick(colors).hex;
+    context.fillRect(0, 0, width, height);
     rects.forEach((item) => {
+      context.save();
+      drawTriangle(context, width, height);
       strokeRect(item);
+      context.restore();
     });
   };
 };
