@@ -1,5 +1,6 @@
 import canvaSketch from 'canvas-sketch';
-import { math } from 'canvas-sketch-util';
+import { math, random, color } from 'canvas-sketch-util';
+import colors from 'riso-colors';
 
 class Circle {
   constructor(angle, radius) {
@@ -19,12 +20,16 @@ class Circle {
 const settings = {
   dimensions: [1080, 1080],
 };
-const strokeRect = ({ context, circle, h, fill, stroke }) => {
-  console.log(context);
+const strokeRect = ({ context, circle, width, height, h, fill, stroke }) => {
   context.save();
-  context.translate(centerX, centerY);
+  context.translate(width, height);
   context.strokeStyle = stroke;
-  context.lineWidth = 10;
+  context.fillStyle = fill;
+  const shadowColor = color.offsetHSL(fill, 0, 0, -20).rgba;
+  context.shadowColor = color.style(shadowColor);
+  context.shadowOffsetX = -10;
+  context.shadowOffsetY = -10;
+  context.lineWidth = 5;
   context.beginPath();
   context.moveTo(0, 0);
   context.lineTo(circle.getX, circle.getY);
@@ -32,9 +37,30 @@ const strokeRect = ({ context, circle, h, fill, stroke }) => {
   context.lineTo(0, h);
   context.closePath();
   context.stroke();
+  context.fill();
   context.restore();
 };
-const sketch = () => {
+const sketch = ({ context, width, height }) => {
+  const rects = [];
+  const rectsColor = [
+    random.pick(colors).hex,
+    random.pick(colors).hex,
+    random.pick(colors).hex,
+    random.pick(colors).hex,
+    random.pick(colors).hex,
+  ];
+
+  for (let i = 0; i < 20; i++) {
+    rects.push({
+      context,
+      circle: new Circle(-30, random.range(200, 600)),
+      width: random.range(0, width),
+      height: random.range(0, height),
+      h: random.range(50, 199),
+      fill: random.pick(rectsColor),
+      stroke: random.pick(rectsColor),
+    });
+  }
   return ({ context, width, height }) => {
     context.fillStyle = '#f0f0f0';
     context.fillRect(0, 0, width, height);
@@ -42,13 +68,8 @@ const sketch = () => {
     const w = width * 0.5;
     const h = height * 0.1;
     const circle = new Circle(-30, w);
-    strokeRect({
-      context,
-      circle,
-      w,
-      h,
-      fill: 'red',
-      stroke: 'blue',
+    rects.forEach((item) => {
+      strokeRect(item);
     });
   };
 };
