@@ -20,18 +20,7 @@ class Circle {
 const settings = {
   dimensions: [1080, 1080],
 };
-const strokeRect = ({
-  context,
-  circle,
-  centerX,
-  centerY,
-  x,
-  y,
-  h,
-  fill,
-  stroke,
-}) => {
-  context.translate(centerX, centerY);
+const strokeRect = ({ context, circle, x, y, h, fill, stroke }) => {
   context.translate(x, y);
   context.globalCompositeOperation =
     random.value() > 0.5 ? 'overlay' : 'source-over';
@@ -41,7 +30,7 @@ const strokeRect = ({
   context.shadowColor = color.style(shadowColor);
   context.shadowOffsetX = -10;
   context.shadowOffsetY = -10;
-  context.lineWidth = 5;
+  context.lineWidth = 2;
   context.beginPath();
   context.moveTo(0, 0);
   context.lineTo(circle.getX, circle.getY);
@@ -74,8 +63,8 @@ const sketch = ({ context, width, height }) => {
       circle: new Circle(-30, random.range(600, width)),
       centerX: width * 0.5,
       centerY: height * 0.5,
-      x: random.range(0, 300),
-      y: random.range(0, 300),
+      x: random.range(-300, 300),
+      y: random.range(-300, 300),
       h: random.range(50, 300),
       fill: random.pick(rectsColor),
       stroke: random.pick(rectsColor),
@@ -87,11 +76,33 @@ const sketch = ({ context, width, height }) => {
     context.fillRect(0, 0, width, height);
     rects.forEach((item) => {
       context.save();
-      drawTriangle(context, width, height);
+      //drawTriangle(context, width, height);
+      context.translate(width / 2, height / 2);
+
+      drawPolaygon({
+        context,
+        sides: 3,
+        radius: 400,
+      });
       strokeRect(item);
       context.restore();
     });
   };
 };
 
+const drawPolaygon = ({ context, sides, radius }) => {
+  const step = (Math.PI * 2) / sides;
+  let circle = new Circle(-90, radius);
+  context.lineWidth = 5;
+  context.beginPath();
+  context.moveTo(circle.getX, circle.getY);
+  for (let i = 1; i < sides; i++) {
+    const degree = step * i;
+    circle = new Circle(math.radToDeg(degree) - 90, radius);
+    context.lineTo(circle.getX, circle.getY);
+  }
+  context.closePath();
+  context.stroke();
+  context.clip();
+};
 canvaSketch(sketch, settings);
